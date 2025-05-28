@@ -1,0 +1,21 @@
+# Will create two listboxes over the form, and init the responses list as an empty one
+SetVar *data evaluate(["Json", "Text", "Multipart/Enctype"])
+SetVar *responses evaluate([])
+SetVar *form_responses_list evaluate([])
+create ListBox 0 with *data at 520-250
+create ListBox 1 with *responses at 520-370
+
+# Then will load existant data in the form
+# Filling Inputs, ...
+SetInputText 6 *current_api_name
+GetTableElement 2 of *current_api
+SetInputText 7 LASTRESULT
+GetTableElement 4 of *current_api
+SetInputText 12 LASTRESULT
+# Auto-selecting row of listbox
+GetTableElement 3 of *current_api
+evaluate select_option_by_text({LASTRESULT}, self.page.boxes[0][1])
+
+# And insert responses automatically in responses listbox
+evaluate listResponses(self.page.boxes[1][1], {*current_responses})
+end

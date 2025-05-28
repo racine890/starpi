@@ -1,0 +1,31 @@
+compare *server_status listening
+if 5 then
+	end
+
+execute function getCurrentIndex
+SetVar *_current_index LASTRESULT
+
+if evaluate({*_current_index} in {*running_apis}) then
+	end
+
+GetTableElement 4 of *current_api
+SetVar . *protocol LASTRESULT
+
+GetTableElement 2 of *current_api
+SetVar . *url LASTRESULT
+
+if evaluate({*protocol} not in ("GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT", "COPY", "HEAD", "VIEW")) then
+	MessageBox Error Incorrect Protocol !
+	end
+
+evaluate "/"+{*url}=>*api
+define $API *api
+define $PROTOCOL *protocol
+
+expose $API using *result from app/scripts/respond.gcs with $PROTOCOL
+
+evaluate {*running_apis}.append( {*_current_index} )
+evaluate update_tab_icon({*notebook}, "running")
+
+MessageBox ok Server listening to this api now!
+end

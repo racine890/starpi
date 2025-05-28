@@ -1,0 +1,36 @@
+# Needs the api name
+connect database history.db
+SetVar LASTLIST evaluate([])
+
+evaluate ({*current_api_name},)=>*prepared
+query select_one with getApi pass *prepared
+SetVar *current_api LASTTUPLE
+
+GetTableElement 0 of *current_api
+SetVar *current_api_id LASTRESULT
+
+evaluate ({*current_api_id},)=>*prepared
+query select_all with getResponses pass *prepared
+SetVar *current_responses LASTLIST
+evaluate {*responses_list}.__setitem__({*current_api}[2], {*current_responses}[0])
+close database
+
+evaluate listResponses(self.page.lb, {*current_responses})
+count *current_responses
+compare LASTRESULT 0
+if 5 then
+	evaluate {*current_responses}[0]=>{*selected_response}
+
+SetVar LASTRECT 1000-110
+GetTableElement 2 of *current_api
+CreateText 0 API URL : [http://127.0.0.1:1901/] LASTRESULT
+
+end
+
+[getResponses]
+select * from response where api = ? ;
+[/getResponses]
+
+[getApi]
+select * from api where name = ? ;
+[/getApi]

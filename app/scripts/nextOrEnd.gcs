@@ -1,0 +1,13 @@
+compare *current_pic 3
+if $LESS then
+	increment *current_pic
+	execute app/scripts/displayHowTo.gcs
+	end
+if $EQUAL then
+	increment *current_pic
+	execute app/scripts/displayHowTo.gcs
+	ConfigButton 1 text='I understood!'
+	end
+execute app/scripts/init.gcs
+load app/screens/main.ch
+end

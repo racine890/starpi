@@ -1,0 +1,17 @@
+# Used to add a response into responses dictionnary in memory
+# Will work only if a response is selected
+count SELECTED
+compare LASTRESULT 0
+if 5 then
+	# Fetch the corresponding body 
+	evaluate findInResponses({SELECTED}[0], {*current_responses}) =>*selected_response
+	# Display and highlight it
+	evaluate highlight_json(getCurrentEdit(), {*selected_response}[1])
+	# Update the responses list to add the body. The key is the url
+	GetTableElement 2 of *current_api
+	evaluate {*responses_list}.__setitem__({LASTRESULT}, {*selected_response})
+	end
+
+# Empty SELECTED to prevent execution of same action twice
+SetVar SELECTED
+end

@@ -1,0 +1,22 @@
+if evaluate( self.funcs['urlLibParse'].unquote({API_URL}[1:]) in {*responses_list} ) then
+	evaluate eval(deleteComments({*responses_list}[urllib.parse.unquote({API_URL}[1:])][1].replace('null', 'None')))
+	SetVar *result LASTRESULT
+	end
+
+# Normaliser le chemin (souvent encodé)
+evaluate (urllib.parse.unquote({API_URL}[1:]), )=>*prepared
+
+# Récupérer la réponse
+connect database history.db
+query select_one with get pass *prepared
+close database
+
+# Prendre le json et répondre avec
+GetTableElement 0 of LASTTUPLE
+evaluate eval({LASTRESULT}.replace('null', 'None'))
+SetVar *result LASTRESULT
+end
+
+[get]
+select json from response, api where response.api = api.id and api.url = ?
+[/get]

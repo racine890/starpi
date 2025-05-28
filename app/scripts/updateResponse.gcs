@@ -1,0 +1,57 @@
+GetInput 6
+SetVar *_api_name LASTRESULT
+if evaluate({*_api_name} == "") then
+	MessageBox Error No name specified!
+	end
+
+GetInput 7
+SetVar *_api_url LASTRESULT
+if evaluate({*_api_url} == "") then
+	MessageBox Error No url specified!
+	end
+if evaluate(not ({*_api_url}.startswith('api') or {*_api_url}.startswith('download'))) then
+	MessageBox Error Url should start with api or download !
+	end
+
+GetInput 12
+SetVar *_api_method LASTRESULT
+if evaluate({*_api_method} == "") then
+	MessageBox Error No method specified!
+	end
+
+evaluate self.page.boxes[0][1].get(self.page.boxes[0][1].curselection())
+SetVar *_api_type LASTRESULT
+if evaluate({*_api_type} == "") then
+	MessageBox Error No type specified!
+	end
+
+evaluate ({*_api_name}, {*_api_url}, {*_api_type}, {*_api_method}, {*current_api_id})=>*prepared
+
+connect database history.db
+execute query upd pass *prepared
+
+evaluate ({*current_api_id},)=>*prepared
+execute query rem pass *prepared
+commit
+
+ForEach *response in *form_responses_list insertResponse
+MessageBox done Api updated!
+end
+
+[upd]
+update api set name = ?, url = ?, responseType = ?, method = ? where id = ?;
+[/upd]
+
+[@insertResponse]
+evaluate ({*response}, {*current_api_id})=>*prepared
+execute query ir pass *prepared
+commit
+[/@insertResponse]
+
+[ir]
+insert into response (json, api) values (?, ?);
+[/ir]
+
+[rem]
+delete from response where api = ?;
+[/rem]

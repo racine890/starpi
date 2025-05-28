@@ -1,0 +1,25 @@
+# Will delete an api and all its responses from database and from GUI
+MessageBox Confirm Are you sure about this ?
+compare LASTRESULT True
+if $DIFFERENT then
+	end
+
+# Get vars for prepared query
+evaluate ({*current_api_id},) =>*prepared
+
+# Connect and run the query del
+connect database history.db
+execute query del pass *prepared
+commit
+close database
+
+# Delete the tab from the gui
+evaluate deleteTab({*notebook})
+
+end
+
+# SQL : Delete evrything from this api in database
+[del]
+delete from response where api = ? ;
+delete from api where id = ?;
+[/del]

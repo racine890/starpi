@@ -1,0 +1,7 @@
+# Will create two listboxes over the form, and init the responses list as an empty one
+SetVar *data evaluate(["Json", "Text", "Multipart/Enctype"])
+SetVar *responses evaluate([])
+SetVar *form_responses_list evaluate([])
+create ListBox 0 with *data at 520-250
+create ListBox 1 with *responses at 520-370
+end

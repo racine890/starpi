@@ -1,0 +1,8 @@
+check file history.db
+if $EXISTS then
+	execute app/scripts/init.gcs
+	load app/screens/main.ch
+	end
+
+load app/screens/howTo.ch
+end

@@ -1,0 +1,4 @@
+evaluate getCurrentNotebook()
+SetVar *current_api_name LASTRESULT
+execute app/scripts/loadAnApi.gcs
+end

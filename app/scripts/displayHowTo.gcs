@@ -1,0 +1,7 @@
+add app/res/ *current_pic
+add LASTRESULT .png
+LoadPic 0 from LASTRESULT at 100-0
+
+evaluate ch_section(str({*current_pic}), 'app/res/user_notes.ch')
+SetEditText 0 var LASTRESULT
+end

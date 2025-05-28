@@ -1,0 +1,16 @@
+# Something should be selected
+count SELECTED
+compare LASTRESULT 0
+if $EQUAL then
+	end
+
+# Récupère l'indice de la sélection actuelle dans *delind
+evaluate self.page.boxes[1][1].curselection()[0]
+SetVar *delind LASTRESULT
+
+# Supprime l'indice actuel dans la liste des réponses
+evaluate {*form_responses_list}.pop(int({*delind}))
+
+# Supprime l'élément sélectionné de la listbox
+evaluate self.page.boxes[1][1].delete({*delind})
+end
