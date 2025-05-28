@@ -1,10 +1,12 @@
 if evaluate( self.funcs['urlLibParse'].unquote({API_URL}[1:]) in {*responses_list} ) then
-	evaluate eval(deleteComments({*responses_list}[urllib.parse.unquote({API_URL}[1:])][1].replace('null', 'None')))
+	evaluate getMatchingUrlScheme(urllib.parse.unquote({API_URL}[1:]), {*responses_list})
+	evaluate eval(deleteComments({*responses_list}[{LASTRESULT}][1].replace('null', 'None'))) if {LASTRESULT} is not None else "No response found"
 	SetVar *result LASTRESULT
 	end
 
 # Normaliser le chemin (souvent encodé)
-evaluate (urllib.parse.unquote({API_URL}[1:]), )=>*prepared
+evaluate getMatchingUrlScheme(urllib.parse.unquote({API_URL}[1:]), {*responses_list})
+evaluate ({LASTRESULT}, )=>*prepared
 
 # Récupérer la réponse
 connect database history.db

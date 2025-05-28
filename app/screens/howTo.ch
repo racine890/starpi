@@ -22,9 +22,7 @@ Button.background: #0D0600
 Button.width: 200
 Button.size: 50
 
+edit_text_size: 14
+
 Onload: @[SetVar *current_pic 1]
 OnDisplay: app/scripts/displayHowTo.gcs
-
-[events]
-Control-r: @[reset]
-[/events]

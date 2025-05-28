@@ -219,6 +219,31 @@ def displayTerm(xterm_frame, geomx:str = "80", geomy:str = "20") -> None:
     # Now exec the terminal
     p = subprocess.Popen(["xterm", "-into", str(xterm_frame_id), "-geometry", geomx+"x"+geomy], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
+def getMatchingUrlScheme(url, responses_list):
+	urlparts = url.split('/')
+
+	# Looping over responses schemes
+	for response in responses_list:
+		rlparts = response.split('/')
+		i = 0
+		skip = False
+
+		if len(rlparts) != len(urlparts):
+			continue
+
+		# Check if url matches response scheme
+		for part in rlparts:
+			if part != urlparts[i]:
+				if len(part) > 0 and part[0] != '{' and part[-1] != '}':
+					skip = True
+					break
+			i+=1
+		if skip:
+			continue
+
+		return response
+	return None
+
 USE_MODULE_FUNCS = {
     'getCurrentIndex': getCurrentIndex,
     'urlLibParse': urllib.parse
