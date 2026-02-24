@@ -1,0 +1,23 @@
+if evaluate( self.funcs['urlLibParse'].unquote({API_URL}[1:]) in {*responses_list}.keys() ) then
+	evaluate getMatchingUrlScheme(urllib.parse.unquote({API_URL}[1:]), list({*responses_list}.keys()))
+	evaluate eval(deleteComments({*responses_list}[{LASTRESULT}][1].replace('null', 'None'))) if {LASTRESULT} is not None else "No response found"
+	SetVar *result LASTRESULT
+	end
+
+# Normaliser le chemin (souvent encodé)
+print val -----------------
+print var *responses_list
+print var API_URL
+evaluate getMatchingUrlScheme(urllib.parse.unquote({API_URL}), list({*responses_list}.keys()))[1:]
+SetVar *arg_url LASTRESULT
+
+evaluate {*responses_list}['/'+{*arg_url}]
+SetVar *arg_choosen_response LASTRESULT
+
+execute app/scripts/db/getResponseByUrl.gcs
+
+# Prendre le json et répondre avec
+GetTableElement 0 of LASTTUPLE
+evaluate eval({LASTRESULT}.replace('null', 'None'))
+SetVar *result LASTRESULT
+end

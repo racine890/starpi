@@ -1,0 +1,19 @@
+SetVar *result evaluate([])
+
+execute app/scripts/db/getAllApis.gcs
+
+evaluate lambda api : {'id': api[0], 'name': api[1], 'url': api[2], 'responseType': api[3], 'method': api[4], 'responses': []}
+SetVar *jsonify LASTRESULT
+
+ForEach *api in LASTLIST getResponse
+
+end
+
+[@getResponse]
+GetTableElement 0 of *api
+SetVar *arg_api_id LASTRESULT
+
+evaluate {*result}.append({*jsonify}({*api}))
+execute app/scripts/db/getAnApiResponses.gcs
+evaluate {*result}[-1].__setitem__('responses', construct_response({LASTLIST}))
+[/@getResponse]

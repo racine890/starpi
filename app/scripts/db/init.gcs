@@ -1,0 +1,37 @@
+SetVar *running_apis evaluate([])
+SetVar *responses_list evaluate(dict())
+SetVar *server_status closed
+
+check file history.db
+if $EXISTS then
+	SetVar *served evaluate({})
+	execute app/scripts/system/serve.gcs
+	end
+
+connect database history.db
+create table api with api
+create table response with response
+close database
+
+SetVar *served evaluate({})
+execute app/scripts/system/serve.gcs
+end
+
+[api]
+create table if not exists api (
+id integer primary key autoincrement,
+name varchar(60),
+url varchar(60),
+responseType varchar(30),
+method varchar(10)
+)
+[/api]
+
+[response]
+create table if not exists response (
+id integer primary key autoincrement,
+json text,
+api integer,
+foreign key (api) references api(id)
+)
+[/response]

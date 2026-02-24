@@ -1,0 +1,6 @@
+{
+	"server_url" : "http://127.0.0.1:1901",
+	"server_authentication" : "basic",
+	"server_username" : "yesenia",
+	"server_password" : "ye$en!@"
+}

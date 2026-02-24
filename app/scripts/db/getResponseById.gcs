@@ -1,0 +1,25 @@
+# Check that all params are set
+check var *arg_response_id
+if $MISSING then
+	print Error ------- Missing argument : *arg_response_id
+	end
+
+evaluate [ {*arg_response_id} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+
+query select_one with q with *prepared_vars
+
+# Close the database
+close database
+end
+
+[q]
+select response.id, response.json, api.name, api.url, api.responseType, api.method, api.id 
+from api, response
+where response.api = api.id 
+and response.id = ? 
+limit 1;
+[/q]

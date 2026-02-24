@@ -1,0 +1,23 @@
+# Check that all params are set
+check var *arg_id
+if $MISSING then
+	print Error ------- Missing argument : *arg_id
+	end
+
+evaluate [ {*arg_id} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+execute query i with *prepared_vars
+commit
+
+SetVar *result *prepared_vars
+
+# Close the database
+close database
+end
+
+[i]
+delete from response where id = ?;
+[/i]

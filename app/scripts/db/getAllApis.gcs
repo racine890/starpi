@@ -1,0 +1,10 @@
+# Connect to the database and read all apis
+connect database history.db
+query select_all with getLabels
+close database
+end
+
+# SQL Query
+[getLabels]
+select id, name, url, responseType, method from api;
+[/getLabels]

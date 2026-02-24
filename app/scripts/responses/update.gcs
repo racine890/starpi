@@ -1,0 +1,11 @@
+SetVar *result evaluate(None)
+
+GetTableElement id of API_PARAMS
+SetVar *arg_id LASTRESULT
+
+GetTableElement json of API_DATA
+SetVar *arg_json LASTRESULT
+
+execute app/scripts/db/updateResponse.gcs
+
+end

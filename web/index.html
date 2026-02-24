@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starpi - Mock API Server v4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #2a5298;
+        }
+
+        .server-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .server-status.stopped {
+            background: #fee;
+            color: #c53030;
+        }
+
+        .server-status.running {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.stopped {
+            background: #c53030;
+        }
+
+        .status-dot.running {
+            background: #38a169;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #2d3748;
+            font-size: 18px;
+        }
+
+        .api-list {
+            list-style: none;
+        }
+
+        .api-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-item:hover {
+            border-color: #4299e1;
+            transform: translateX(2px);
+        }
+
+        .api-item.active {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+
+        .api-item.running {
+            border-left: 4px solid #38a169;
+        }
+
+        .api-info {
+            flex: 1;
+        }
+
+        .api-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .api-url {
+            font-size: 12px;
+            color: #718096;
+            font-family: 'Courier New', monospace;
+        }
+
+        .api-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 20px;
+        }
+
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #718096;
+        }
+
+        .tab.active {
+            color: #4299e1;
+            border-bottom-color: #4299e1;
+            background: white;
+        }
+
+        .tab-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-section h4 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .url-preview {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+            margin-top: 10px;
+        }
+
+        .responses-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            height: 400px;
+        }
+
+        .responses-list {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .response-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .response-item:hover {
+            border-color: #4299e1;
+        }
+
+        .response-item.active {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+
+        .json-editor {
+            position: relative;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .json-editor textarea {
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            border: none;
+            resize: none;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: #1a202c;
+            color: #e2e8f0;
+        }
+
+        .json-editor textarea:focus {
+            outline: none;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .welcome-screen h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .welcome-screen p {
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            color: #2d3748;
+            font-size: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #f7fafc;
+        }
+
+        .help-content {
+            line-height: 1.8;
+            color: #4a5568;
+        }
+
+        .help-content h4 {
+            color: #2d3748;
+            margin: 20px 0 10px;
+            font-size: 16px;
+        }
+
+        .help-content ul {
+            margin: 10px 0 10px 20px;
+        }
+
+        .help-content code {
+            background: #f7fafc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e53e3e;
+        }
+
+        .rotate-in-center {
+            -webkit-animation: rotate-in-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) 2s infinite reverse both;
+                    animation: rotate-in-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) 2s infinite reverse both;
+        }
+
+        /* ----------------------------------------------
+        * Generated by Animista on 2025-12-12 13:49:50
+        * Licensed under FreeBSD License.
+        * See http://animista.net/license for more info. 
+        * w: http://animista.net, t: @cssanimista
+        * ---------------------------------------------- */
+
+        /**
+        * ----------------------------------------
+        * animation rotate-in-center
+        * ----------------------------------------
+        */
+        @-webkit-keyframes rotate-in-center {
+        0% {
+            -webkit-transform: rotate(-360deg);
+                    transform: rotate(-360deg);
+            opacity: 0;
+        }
+        100% {
+            -webkit-transform: rotate(0);
+                    transform: rotate(0);
+            opacity: 1;
+        }
+        }
+        @keyframes rotate-in-center {
+        0% {
+            -webkit-transform: rotate(-360deg);
+                    transform: rotate(-360deg);
+            opacity: 0;
+        }
+        100% {
+            -webkit-transform: rotate(0);
+                    transform: rotate(0);
+            opacity: 1;
+        }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                overflow-y: unset;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .server-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .responses-section {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                🚀 Starpi v4 - Mock API Server
+            </div>
+            <div class="server-controls">
+                <div class="server-status" id="serverStatus">
+                    <div class="status-dot running rotate-in-center"></div>
+                    Server Running on :1901
+                </div>
+                <button class="btn btn-secondary" onclick="showCSSForm()">
+                    Edit CSS
+                </button>
+                <button class="btn btn-secondary" onclick="showHelp()">
+                    ❓ Help
+                </button>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>APIs</h3>
+                    <button class="btn btn-primary" onclick="showCreateForm()" style="padding: 8px 12px; font-size: 12px;">
+                        ➕ Add API
+                    </button>
+                </div>
+                <ul class="api-list" id="apiList">
+                    <!-- APIs will be populated here -->
+                </ul>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <div class="tabs">
+                    <div class="tab active" data-tab="overview">📊 Overview</div>
+                    <div class="tab" data-tab="editor">✏️ Editor</div>
+                    <div class="tab" data-tab="responses">💬 Responses</div>
+                </div>
+
+                <div class="tab-content" id="tabContent">
+                    <!-- Content will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div class="modal" id="apiModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Create New API</h3>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
+                <form id="apiForm" onsubmit="saveAPI(event)">
+                    <div class="form-section">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="apiName">API Name</label>
+                                <input type="text" id="apiName" required placeholder="My API">
+                            </div>
+                            <div class="form-group">
+                                <label for="apiMethod">HTTP Method</label>
+                                <select id="apiMethod" required>
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="DELETE">DELETE</option>
+                                    <option value="OPTIONS">OPTIONS</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="apiUrl">API Endpoint (without base URL)</label>
+                            <input type="text" id="apiUrl" required placeholder="api/users" pattern="^(api|download).*">
+                            <div class="url-preview">
+                                Full URL: <span id="urlPreview"> http://localhost:1901/api/users</span>
+                            </div>
+                            <small style="color: #718096; margin-top: 5px; display: block;">
+                                Must start with 'api' or 'download'. Use {*variable} for path variables.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="responseType">Response Type</label>
+                            <select id="responseType" required>
+                                <option value="Json">JSON</option>
+                                <option value="Text">Text</option>
+                                <option value="Multipart/Enctype">Multipart</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn" onclick="closeModal()" style="background: #e2e8f0; color: #4a5568;">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Save API
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal" id="cssModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">✏️ Custom CSS Editor</h3>
+                    <button class="close-btn" onclick="updateCss()">&times;</button>
+                </div>
+                <div class="json-editor" style="height: 500px;">
+                    <textarea id="cssEditor" placeholder="Example: .logo {color: #000}"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="helpModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Starpi Help & Documentation</h3>
+                    <button class="close-btn" onclick="closeHelp()">&times;</button>
+                </div>
+                <div class="help-content">
+                    <h4>🎯 What is Starpi?</h4>
+                    <p>Starpi is a Mock API Server that helps developers simulate backend responses during development. Perfect for frontend developers waiting for backend APIs or for testing with external services.</p>
+                    
+                    <h4>🚀 Getting Started</h4>
+                    <ul>
+                        <li>Click <strong>"Add API"</strong> to create a new mock endpoint</li>
+                        <li>Fill in the API details (name, method, endpoint)</li>
+                        <li>Add JSON responses in the editor</li>
+                        <li>Start the server and use your endpoints!</li>
+                    </ul>
+                    
+                    <h4>🔧 Creating APIs</h4>
+                    <ul>
+                        <li><strong>Endpoint:</strong> Must start with 'api' or 'download'</li>
+                        <li><strong>Path Variables:</strong> Use <code>{*variable}</code> syntax</li>
+                        <li><strong>Example:</strong> <code>api/users/{*userId}/posts</code></li>
+                    </ul>
+                    
+                    <h4>💡 Managing Responses</h4>
+                    <ul>
+                        <li>Add multiple responses per API</li>
+                        <li>Switch between responses in real-time</li>
+                        <li>Use JSON editor with syntax highlighting</li>
+                        <li>Responses are served in order of selection</li>
+                    </ul>
+                    
+                    <h4>🌐 Using Your Mock APIs</h4>
+                    <p>Once the server is running, use tools like:</p>
+                    <ul>
+                        <li>Postman or Insomnia</li>
+                        <li>Your frontend application</li>
+                        <li>cURL commands</li>
+                        <li>Browser (for GET requests)</li>
+                    </ul>
+                    
+                    <h4>⚠️ Important Notes</h4>
+                    <ul>
+                        <li>Server runs on <code>http://localhost:1901</code></li>
+                        <li>All responses are public - don't use sensitive data</li>
+                        <li>Path variables are flexible - any value will match</li>
+                        <li>Headers and authentication are ignored for simplicity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Core scripts -->
+	<script src="./core/Service.js"></script>
+    <script src="./core/Model.js"></script>
+    <script src="./core/DataManager.js"></script>
+    <script src="./core/Action.js"></script>
+    <script src="./core/Form.js"></script>
+
+    <!-- User objects -->
+    <script src="./services/apiService.js"></script>
+    <script src="./services/responseService.js"></script>
+    <script src="./managers/api_manager.js"></script>
+    <script src="./managers/response_manager.js"></script>
+
+    <!-- Initializers -->
+    <script src="./actions/init_global.js"></script>
+
+    <script>
+        // Application State
+        let apis = [];
+        let currentAPI = null;
+        let currentResponse = null;
+        let serverRunning = true;
+        let runningAPIs = new Set();
+        let editingMode = false;
+        let editingAPIId = null;
+        let isAddingResponse = false;
+        let _host_ = location.href;
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            renderContent();
+
+            // Load some data
+            loadData();
+        }
+
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderContent();
+                });
+            });
+
+            // API URL preview
+            document.getElementById('apiUrl').addEventListener('input', updateUrlPreview);
+        }
+
+        function loadData() {
+            getApis().then((response)=>{
+
+                let started;
+                if (!appDataManager.checkvar('started')){
+                    appDataManager.setvar('started', []);
+                    started = new Set();
+                } else {
+                    started = new Set(appDataManager.getvar('started'));
+                }
+
+                response.forEach(element => {
+                    element.responses.forEach(editResponse => {
+                        if (started.has(editResponse.id)) {
+                            runningAPIs.add(element.id);
+                        }
+                    });
+                });
+
+                apis = response;
+                renderAPIs();
+                renderContent();
+            });
+        }
+
+        function renderAPIs() {
+            const apiList = document.getElementById('apiList');
+            
+            if (apis.length === 0) {
+                apiList.innerHTML = `
+                    <li style="text-align: center; padding: 20px; color: #718096;">
+                        No APIs created yet.<br>
+                        <button class="btn btn-primary" onclick="showCreateForm()" style="margin-top: 10px; padding: 8px 16px; font-size: 12px;">
+                            Create your first API
+                        </button>
+                    </li>
+                `;
+                return;
+            }
+
+            apiList.innerHTML = apis.map(api => {
+                return `
+                <li class="api-item ${currentAPI?.id === api.id ? 'active' : ''} ${runningAPIs.has(api.id) ? 'running' : ''}" 
+                    onclick="selectAPI(${api.id})">
+                    <div class="api-info">
+                        <div class="api-name">${api.name}</div>
+                        <div class="api-url">${api.method} /${api.url}</div>
+                    </div>
+                    <div class="api-actions">
+                        <button class="icon-btn" style="background: #4299e1; color: white;" 
+                                onclick="editAPI(${api.id}); event.stopPropagation();" title="Edit">
+                            ✏️
+                        </button>
+                        <button class="icon-btn" style="background: #38a169; color: white;" 
+                                onclick="toggleAPIStatus(${api.id}); event.stopPropagation();" 
+                                title="${runningAPIs.has(api.id) ? 'Stop' : 'Start'} API">
+                            ${runningAPIs.has(api.id) ? '⏸️' : '▶️'}
+                        </button>
+                        <button class="icon-btn" style="background: #e53e3e; color: white;" 
+                                onclick="deleteAPI(${api.id}); event.stopPropagation();" title="Delete">
+                            🗑️
+                        </button>
+                    </div>
+                </li>
+            `}).join('');
+        }
+
+        function renderContent() {
+            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            const content = document.getElementById('tabContent');
+            
+            if (!currentAPI) {
+                content.innerHTML = `
+                    <div class="welcome-screen">
+                        <h2>Welcome to Starpi v4! 🚀</h2>
+                        <p>
+                            Create and manage mock APIs for your development needs. 
+                            Select an API from the sidebar to start editing, or create a new one to get started.
+                        </p>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary" onclick="showCreateForm()">
+                                ➕ Create New API
+                            </button>
+                            <button class="btn btn-secondary" onclick="showHelp()">
+                                📚 View Documentation
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            switch (activeTab) {
+                case 'overview':
+                    renderOverview(content);
+                    break;
+                case 'editor':
+                    renderEditor(content);
+                    break;
+                case 'responses':
+                    renderResponses(content);
+                    break;
+            }
+        }
+
+        function renderOverview(content) {
+            const isRunning = runningAPIs.has(currentAPI.id);
+            const baseUrl = serverRunning ? _host_ : _host_ + ' (Server Stopped)';
+            
+            content.innerHTML = `
+                <div class="form-section">
+                    <h4>📋 API Overview</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div>
+                            <strong>Name:</strong><br>
+                            <span style="color: #4a5568;">${currentAPI.name}</span>
+                        </div>
+                        <div>
+                            <strong>Method:</strong><br>
+                            <span style="color: #4a5568; font-family: monospace; background: #f7fafc; padding: 2px 6px; border-radius: 4px;">${currentAPI.method}</span>
+                        </div>
+                        <div>
+                            <strong>Response Type:</strong><br>
+                            <span style="color: #4a5568;">${currentAPI.responseType}</span>
+                        </div>
+                        <div>
+                            <strong>Status:</strong><br>
+                            <span style="color: ${isRunning ? '#38a169' : '#e53e3e'};">
+                                ${isRunning ? '🟢 Running' : '🔴 Stopped'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4>🌐 Endpoint Information</h4>
+                    <div class="form-group">
+                        <label>Full URL:</label>
+                        <div class="url-preview" style="font-size: 16px;">
+                            ${baseUrl}/${currentAPI.url}
+                        </div>
+                    </div>
+                    ${isRunning ? `
+                        <div style="background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                            <strong style="color: #2f855a;">✅ This API is currently running!</strong><br>
+                            <span style="color: #38a169;">You can test it with Postman, cURL, or your application.</span>
+                        </div>
+                    ` : `
+                        <div style="background: #fed7d7; border: 1px solid #feb2b2; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                            <strong style="color: #c53030;">⚠️ API is not running</strong><br>
+                            <span style="color: #e53e3e;">Start the API to begin serving responses.</span>
+                        </div>
+                    `}
+                </div>
+
+                <div class="form-section">
+                    <h4>📊 Response Statistics</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div style="text-align: center; background: #f7fafc; padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #4299e1;">${currentAPI.responses.length}</div>
+                            <div style="color: #718096; font-size: 14px;">Responses</div>
+                        </div>
+                        <div style="text-align: center; background: #f7fafc; padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #38a169;">${currentResponse ? '1' : '0'}</div>
+                            <div style="color: #718096; font-size: 14px;">Active</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEditor(content) {
+            const responseContent = currentResponse ? currentResponse.json : '{\n  "message": "Hello from Starpi!",\n  "timestamp": "2024-01-01T00:00:00Z"\n}';
+            
+            content.innerHTML = `
+                <div class="form-section">
+                    <h4>✏️ JSON Response Editor</h4>
+                    <div class="json-editor" style="height: 500px;">
+                        <textarea id="jsonEditor" placeholder="Enter your JSON response here...">${responseContent}</textarea>
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="saveResponse()">
+                            💾 Save Response
+                        </button>
+                        <button class="btn btn-secondary" onclick="formatJSON()">
+                            🎨 Format JSON
+                        </button>
+                        <button class="btn" onclick="addNewResponse()" style="background: #38a169; color: white;">
+                            ➕ Add New Response
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function cancelAddResponse(){
+            isAddingResponse = false;
+            if (currentAPI.responses.length != 0){
+                currentResponse = currentAPI.responses[currentAPI.responses.length - 1];
+            } else {
+                currentResponse = null;
+            }
+            renderContent();
+        }
+
+        function renderResponses(content) {
+            content.innerHTML = `
+                <div class="form-section">
+                    <h4>💬 Response Management</h4>
+                    <div class="responses-section">
+                        <div class="responses-list" id="responsesList">
+                            <h5 style="margin-bottom: 15px; color: #4a5568;">Available Responses</h5>
+                            <input type="file" id="fileInput" style="display:none;">
+                            ${currentAPI.responses.length === 0 ? `
+                                <div style="text-align: center; color: #718096; padding: 20px;">
+                                    No responses yet.<br>
+                                    <button class="btn btn-primary" onclick="addNewResponse()" style="margin-top: 10px; padding: 8px 16px; font-size: 12px;">
+                                        Add First Response
+                                    </button>
+                                </div>
+                            ` : currentAPI.responses.map((response, index) => `
+                                <div class="response-item ${currentResponse?.id === response.id ? 'active' : ''}" 
+                                     onclick="selectResponse(${response.id})">
+                                    <div style="font-weight: 600; margin-bottom: 5px;">Response ${index + 1}</div>
+                                    <div style="font-size: 12px; color: #718096; font-family: monospace;">
+                                        ${response.json.substring(0, 50)}${response.json.length > 50 ? '...' : ''}
+                                    </div>
+                                    <div style="margin-top: 8px;">
+                                        <button onclick="deleteResponse(${response.id}); event.stopPropagation();" 
+                                                style="background: #e53e3e; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                            Delete
+                                        </button>
+                                        <button onclick="editResponse(${response.id}); event.stopPropagation();" 
+                                                style="background: #880eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                                            Update
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="json-editor">
+                            <textarea id="responseEditor" placeholder="Select a response to edit...">${currentResponse ? currentResponse.json : ''}</textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="saveCurrentResponse()">
+                            💾 Save Changes
+                        </button>
+                        <button class="btn btn-success" onclick="addNewResponse()">
+                            ➕ Add New Response
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const element = document.getElementById('fileInput');
+            if (element) {
+                element.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const uploadResponse = await uploadRessource(file);
+
+                const responseQuery = uploadResponse.file.substring(uploadResponse.file.lastIndexOf('/') + 1);
+
+                const newResponse = {
+                    id: Date.now(),
+                    json: JSON.stringify({"url": _host_+"download/" + responseQuery}, null, 2)
+                };
+                
+                isAddingResponse = true;
+                currentResponse = newResponse;
+
+                document.getElementById('responseEditor').value = JSON.stringify({"url": _host_+"download/" + responseQuery}, null, 2);
+            });
+            }
+            if (isAddingResponse) {
+                const responseList = document.getElementById('responsesList');
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'response-item';
+                tempDiv.style.backgroundColor = '#fed7d7'; // fond rouge clair
+                tempDiv.style.border = '1px dashed #e53e3e';
+                tempDiv.style.padding = '10px';
+                tempDiv.style.borderRadius = '4px';
+                tempDiv.style.marginBottom = '10px';
+                tempDiv.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 5px; color: #e53e3e;">Editing a new Response</div>
+                    <div style="font-size: 12px; color: #718096; font-family: monospace;">
+                        Write the json to the editor and save it !
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <button onclick="cancelAddResponse()" 
+                                style="background: #e53e3e; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                `;
+                
+                responseList.appendChild(tempDiv); // ou appendChild() selon où tu veux l'afficher
+            }
+        }
+
+        // API Management Functions
+        function selectAPI(apiId) {
+            currentAPI = apis.find(api => api.id === apiId);
+            currentResponse = currentAPI.responses.length > 0 ? currentAPI.responses[0] : null;
+            renderAPIs();
+            renderContent();
+        }
+
+        function selectResponse(responseId) {
+            switchResponse(responseId).then(()=>{
+                currentResponse = currentAPI.responses.find(r => r.id === responseId);
+                renderContent();
+            });
+        }
+
+        function showCreateForm() {
+            editingMode = false;
+            editingAPIId = null;
+            document.getElementById('modalTitle').textContent = 'Create New API';
+            document.getElementById('apiForm').reset();
+            updateUrlPreview();
+            document.getElementById('apiModal').style.display = 'flex';
+        }
+
+        function editAPI(apiId) {
+            const api = apis.find(a => a.id === apiId);
+            if (!api) return;
+            
+            editingMode = true;
+            editingAPIId = apiId;
+            document.getElementById('modalTitle').textContent = 'Edit API';
+            document.getElementById('apiName').value = api.name;
+            document.getElementById('apiUrl').value = api.url;
+            document.getElementById('apiMethod').value = api.method;
+            document.getElementById('responseType').value = api.responseType;
+            updateUrlPreview();
+            document.getElementById('apiModal').style.display = 'flex';
+        }
+
+        function saveAPI(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('apiName').value;
+            const url = document.getElementById('apiUrl').value;
+            const method = document.getElementById('apiMethod').value;
+            const responseType = document.getElementById('responseType').value;
+            
+            if (!url.startsWith('api') && !url.startsWith('download')) {
+                alert('Endpoint must start with "api" or "download"');
+                return;
+            }
+            
+            if (editingMode && editingAPIId) {
+                updateApi(editingAPIId, name, url, method, responseType).then(() =>{
+                    // Update existing API
+                    const api = apis.find(a => a.id === editingAPIId);
+                    api.name = name;
+                    api.url = url;
+                    api.method = method;
+                    api.responseType = responseType;
+                    
+                    if (currentAPI?.id === editingAPIId) {
+                        currentAPI = api;
+                    }
+                    closeModal();
+                    renderAPIs();
+                    renderContent();
+                });
+            } else {
+                // Create new API
+                createApi(name, url, method, responseType).then((createdApi)=>{
+                    const newAPI = {
+                        id: createdApi[0],
+                        name,
+                        url,
+                        method,
+                        responseType,
+                        responses: []
+                    };
+                    
+                    apis.push(newAPI);
+                    currentAPI = newAPI;
+                    currentResponse = null;
+                    closeModal();
+                    renderAPIs();
+                    renderContent();
+                });
+            }
+        }
+
+        function deleteAPI(apiId) {
+            if (!confirm('Are you sure you want to delete this API and all its responses?')) {
+                return;
+            }
+            
+            removeApi(apiId).then(()=>{
+                apis = apis.filter(api => api.id !== apiId);
+                runningAPIs.delete(apiId);
+                
+                if (currentAPI?.id === apiId) {
+                    currentAPI = null;
+                    currentResponse = null;
+                }
+                
+                renderAPIs();
+                renderContent();
+            });
+        }
+
+        function addNewResponse() {
+            if (!currentAPI) return;
+
+            if (currentResponse && !('api' in currentResponse)) {
+                alert("The last response you added hasn't been saved. Please save it first !");
+                return;
+            };
+            if (currentAPI.responseType === 'Multipart/Enctype') {
+                uploadFileAsResource();
+            } else {
+
+                const newResponse = {
+                    id: Date.now(),
+                    json: '{\n  "message": "New response",\n  "timestamp": "' + new Date().toISOString() + '"\n}'
+                };
+                
+                isAddingResponse = true;
+                currentResponse = newResponse;
+            }
+            renderContent();
+        }
+
+        // Will save the current contents of the jsonEditor in db without showing it immediately
+        // Uses the selected api as the response parent
+        function saveResponse() {
+            const content = document.getElementById('jsonEditor').value;
+            
+            if (!currentResponse) {
+                addNewResponse();
+            }
+            
+            if (currentResponse) {
+                try {
+                    JSON.parse(content); // Validate JSON
+                    createResponse(currentAPI.id, content).then((response)=>{
+                        currentResponse.id = response[0];
+                        currentResponse.api = currentAPI.id;
+                        currentResponse.json = content;
+                        currentAPI.responses.push(currentResponse);
+                        
+                        const index = apis.findIndex(api => api.id === currentAPI.id);
+                        if (index !== -1) {
+                            apis[index] = currentAPI;
+                        }
+                        isAddingResponse = false;
+                        renderContent();
+                        alert('Response saved successfully!');
+                    }).catch((error) => {
+                        console.error("createResponse failed:", error);
+                        alert('Failed to save response. See console for details.');
+                    });
+                } catch (e) {
+                    alert('Invalid JSON format. Please check your syntax.');
+                }
+            }
+        }
+
+        function saveCurrentResponse() {
+            const content = document.getElementById('responseEditor').value;
+            
+            if (currentResponse) {
+                try {
+                    JSON.parse(content); // Validate JSON
+                    createResponse(currentAPI.id, content).then((response)=>{
+                        currentResponse.id = response[0];
+                        currentResponse.api = currentAPI.id;
+                        currentResponse.json = content;
+                        currentAPI.responses.push(currentResponse);
+                        
+                        const index = apis.findIndex(api => api.id === currentAPI.id);
+                        if (index !== -1) {
+                            apis[index] = currentAPI;
+                        }
+                        isAddingResponse = false;
+                        renderContent();
+                        alert('Response saved successfully!');
+                    });
+                } catch (e) {
+                    console.log(e);
+                    alert('Invalid JSON format. Please check your syntax.');
+                }
+            }
+        }
+
+        function editResponse(responseId) {
+            const content = document.getElementById('responseEditor').value;
+
+            //try {
+                    JSON.parse(content);
+                    updateResponse(responseId, content).then(()=>{
+                        currentResponse.json = content;
+                        
+                        renderContent();
+                    });
+            //    } catch (e) {
+            //    alert('Invalid JSON format. Please check your syntax.');
+            //}
+        }
+
+        function deleteResponse(responseId) {
+            if (!confirm('Are you sure you want to delete this response?')) {
+                return;
+            }
+
+            removeResponse(responseId).then(()=>{
+                currentAPI.responses = currentAPI.responses.filter(r => r.id !== responseId);
+                
+                if (currentResponse?.id === responseId) {
+                    currentResponse = currentAPI.responses.length > 0 ? currentAPI.responses[0] : null;
+                }
+                
+                renderContent();
+            });
+        }
+
+        function formatJSON() {
+            const editor = document.getElementById('jsonEditor');
+            try {
+                const parsed = JSON.parse(editor.value);
+                editor.value = JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                alert('Invalid JSON format. Cannot format.');
+            }
+        }
+
+        function toggleAPIStatus(apiId) {
+            const api = apis.find(a => a.id === apiId);
+            if (!api) return;
+
+            selectAPI(api.id);
+            
+            if (!currentResponse){
+                if(api.responses.length)
+                    currentResponse = api.responses[0];
+                else {
+                    alert('This API has no responses. Please add at least one response before starting it.');
+                    return;
+                }
+            }
+
+            startStopApi(currentResponse.id).then(() => {
+                if (runningAPIs.has(apiId)) {
+                    runningAPIs.delete(apiId);
+                    alert(`🛑 API "${api.name}" stopped.`);
+                } else {
+                    if (api.responses.length === 0) {
+                        alert('This API has no responses. Please add at least one response before starting it.');
+                        return;
+                    }
+                    runningAPIs.add(apiId);
+                    alert(`✅ API "${api.name}" is now running!\n\nEndpoint: ${_host_ + api.url}`);
+                }
+                
+                renderAPIs();
+                renderContent();
+            });
+        }
+
+        // Utility Functions
+        function updateUrlPreview() {
+            const url = document.getElementById('apiUrl').value || 'api/example';
+            document.getElementById('urlPreview').textContent = `${_host_ + url}`;
+        }
+
+        function closeModal() {
+            document.getElementById('apiModal').style.display = 'none';
+        }
+
+        function showHelp() {
+            document.getElementById('helpModal').style.display = 'flex';
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
+
+        function showCSSForm(){
+            document.getElementById('cssModal').style.display = 'flex';
+            document.getElementById('cssEditor').textContent = localStorage.getItem("custom-css");
+        }
+
+        function updateCss() {
+            const content = document.getElementById('cssEditor').value;
+            localStorage.setItem("custom-css", content);
+            document.getElementById('cssModal').style.display = 'none';
+        }
+
+        // Initialize the application when the page loads
+        function uploadFileAsResource(){
+            const element = document.getElementById('fileInput');
+            if (element) {
+                element.click();
+            }
+        }
+
+        init();
+        const css = localStorage.getItem("custom-css");
+
+        if (css) {
+            const style = document.createElement("style");
+            style.setAttribute("data-source", "localstorage");
+            style.textContent = css;
+            document.head.appendChild(style);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+# Check that all params are set
+check var *arg_url
+if $MISSING then
+	print Error ------- Missing argument : *arg_url
+	end
+
+check var *arg_choosen_response
+if $MISSING then
+	print Error ------- Missing argument : *arg_choosen_response
+	end
+
+evaluate [ {*arg_url} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+
+compare *arg_choosen_response None
+if 0 then
+	query select_one with q with *prepared_vars
+if 5 then
+	evaluate [ {*arg_choosen_response} ]
+	SetVar . *prepared_vars LASTRESULT
+	query select_one with fq with *prepared_vars
+
+# Close the database
+close database
+end
+
+[q]
+select json from response, api where response.api = api.id and api.url = ?
+[/q]
+
+[fq]
+select json from response where id = ?
+[/fq]

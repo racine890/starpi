@@ -1,0 +1,33 @@
+# Check that all params are set
+check var *arg_api_id
+if $MISSING then
+	print Error ------- Missing argument : *arg_api_id
+	end
+
+check var *arg_json
+if $MISSING then
+	print Error ------- Missing argument : *arg_json
+	end
+
+evaluate [ {*arg_json}, {*arg_api_id} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+execute query i with *prepared_vars
+commit
+
+query select_one with last
+SetVar *result LASTTUPLE
+
+# Close the database
+close database
+end
+
+[i]
+insert into response( json, api ) values ( ?, ? ) ;
+[/i]
+
+[last]
+select id, json, api from response where id = ( select max(id) from response );
+[/last]

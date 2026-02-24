@@ -1,0 +1,43 @@
+# Check that all params are set
+check var *arg_name
+if $MISSING then
+	print Error ------- Missing argument : *arg_name
+	end
+
+check var *arg_method
+if $MISSING then
+	print Error ------- Missing argument : *arg_method
+	end
+
+check var *arg_url
+if $MISSING then
+	print Error ------- Missing argument : *arg_url
+	end
+
+check var *arg_responseType
+if $MISSING then
+	print Error ------- Missing argument : *arg_responseType
+	end
+
+evaluate [ {*arg_name}, {*arg_method}, {*arg_url}, {*arg_responseType} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+execute query i with *prepared_vars
+commit
+
+query select_one with last
+SetVar *result LASTTUPLE
+
+# Close the database
+close database
+end
+
+[i]
+insert into api( name, method, url, responseType ) values ( ?, ?, ?, ? ) ;
+[/i]
+
+[last]
+select id, name, url, responseType, method from api where id = ( select max(id) from api );
+[/last]

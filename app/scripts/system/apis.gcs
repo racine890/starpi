@@ -1,0 +1,13 @@
+expose /api/api using *result from app/scripts/apis/get.gcs with GET
+expose /api/api using *result from app/scripts/apis/create.gcs with POST
+expose /api/api/{id} using *result from app/scripts/apis/delete.gcs with DELETE
+expose /api/api/{id} using *result from app/scripts/apis/update.gcs with PATCH
+expose /api/api/switch/{id} using *result from app/scripts/apis/listen.gcs with PATCH
+expose /api/api/stop using *result from app/scripts/apis/stopAll.gcs with PATCH
+
+expose /api/response using *result from app/scripts/responses/get.gcs with GET
+expose /api/response/{api_id} using *result from app/scripts/responses/create.gcs with POST
+expose /api/response/{id} using *result from app/scripts/responses/delete.gcs with DELETE
+expose /api/response/{id} using *result from app/scripts/responses/update.gcs with PATCH
+expose /api/response/select/{id} using *result from app/scripts/responses/select.gcs with PATCH
+end

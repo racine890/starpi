@@ -1,0 +1,17 @@
+SetVar *result evaluate(None)
+
+GetTableElement name of API_DATA
+SetVar *arg_name LASTRESULT
+
+GetTableElement method of API_DATA
+SetVar *arg_method LASTRESULT
+
+GetTableElement url of API_DATA
+SetVar *arg_url LASTRESULT
+
+GetTableElement responseType of API_DATA
+SetVar *arg_responseType LASTRESULT
+
+execute app/scripts/db/insertApi.gcs
+
+end

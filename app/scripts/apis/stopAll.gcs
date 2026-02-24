@@ -1,0 +1,3 @@
+evaluate {*running_apis}.clear()
+SetVar *result ok
+end

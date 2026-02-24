@@ -1,0 +1,21 @@
+# Check that all params are set
+check var *arg_api_id
+if $MISSING then
+	print Error ------- Missing argument : *arg_api_id
+	end
+
+evaluate [ {*arg_api_id} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+
+query select_all with q with *prepared_vars
+
+# Close the database
+close database
+end
+
+[q]
+select id, json, api from response where api = ? ;
+[/q]

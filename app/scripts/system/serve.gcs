@@ -1,0 +1,12 @@
+config api set path to ./web
+config api set authentication to none
+config api set username to yesenia
+config api set password to ye$en!@
+config api set upload_dir to ./uploads/
+config api set download_dir to ./uploads/
+
+serve to 0.0.0.0:1901
+execute app/scripts/system/apis.gcs
+
+SetVar *responses_list evaluate({})
+end

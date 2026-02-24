@@ -1,0 +1,8 @@
+SetVar *result evaluate(None)
+
+GetTableElement id of API_PARAMS
+SetVar *arg_id LASTRESULT
+
+execute app/scripts/db/deleteApi.gcs
+
+end

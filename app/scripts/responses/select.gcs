@@ -1,0 +1,14 @@
+SetVar *result evaluate(None)
+
+GetTableElement id of API_PARAMS
+SetVar *arg_response_id LASTRESULT
+
+# GetResponseById
+execute app/scripts/db/getResponseById.gcs
+
+GetTableElement 3 of LASTTUPLE
+# Update *responses_list [url] by own id
+evaluate {*responses_list}.__setitem__('/'+{LASTRESULT}, {*arg_response_id})
+
+SetVar *result *responses_list
+end

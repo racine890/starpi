@@ -1,4 +1,0 @@
-serve at 0.0.0.0:1901
-SetVar *server_status listening
-MessageBox done Server listening at port 1901 !
-end

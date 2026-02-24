@@ -1,0 +1,41 @@
+# Check that all params are set
+SetVar *result None
+
+GetTableElement id of API_PARAMS
+SetVar *arg_response_id LASTRESULT
+
+execute app/scripts/db/getResponseById.gcs
+
+GetTableElement 6 of LASTTUPLE
+SetVar . *arg_api_id LASTRESULT
+
+if evaluate({*arg_api_id} in {*running_apis}) then
+	evaluate {*running_apis}.remove({*arg_api_id})
+	SetVar *result ok
+	respond 200
+	end
+
+GetTableElement 5 of LASTTUPLE
+SetVar . *protocol LASTRESULT
+
+GetTableElement 3 of LASTTUPLE
+SetVar . *url LASTRESULT
+
+if evaluate({*protocol} not in ("GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT", "COPY", "HEAD", "VIEW")) then
+	SetVar *result Incorrect Method used!
+	respond 403
+	end
+
+evaluate "/"+{*url}=>*api
+define $API *api
+define $PROTOCOL *protocol
+
+expose $API using *result from app/scripts/system/respond.gcs with $PROTOCOL
+evaluate {*responses_list}.__setitem__( "$API", None )
+
+print val ------------ ARE RUNNING NOW : 
+print var *responses_list
+
+SetVar *result ok
+respond 200
+end

@@ -1,0 +1,28 @@
+# Check that all params are set
+check var *arg_id
+if $MISSING then
+	print Error ------- Missing argument : *arg_id
+	end
+
+check var *arg_json
+if $MISSING then
+	print Error ------- Missing argument : *arg_json
+	end
+
+evaluate [ {*arg_json}, {*arg_id} ]
+SetVar . *prepared_vars LASTRESULT
+
+# Connect to the database
+connect database history.db
+execute query i with *prepared_vars
+commit
+
+SetVar *result *prepared_vars
+
+# Close the database
+close database
+end
+
+[i]
+update response set json = ? where id = ? ;
+[/i]
